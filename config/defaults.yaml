@@ -1,0 +1,19 @@
+# snakeplane/config/defaults.yaml
+
+execution:
+  dry_run: true
+  backend: ray
+  max_workers: 4
+
+compression:
+  enabled: true
+  codec: lz4
+  level: fast
+
+io:
+  output_dir: ./output/
+  cache_dir: ./cache/
+
+logging:
+  level: info
+  verbose: true
