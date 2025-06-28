@@ -1,0 +1,19 @@
+# VS Code project settings
+.vscode/
+
+# Python bytecode cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Specific cache folders
+cli/__pycache__/
+config/__pycache__/
+
+# Environment files (optional)
+.env
+*.env
+
+# OS or editor artifacts
+.DS_Store
+*.swp
