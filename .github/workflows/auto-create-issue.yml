@@ -1,0 +1,50 @@
+name: Auto Create Issue From Branch
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+
+jobs:
+  create_issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract branch name
+        run: echo "##[set-output name=branch;]${GITHUB_REF#refs/heads/}"
+        id: extract
+
+      - name: Parse and format issue title
+        id: parse
+        run: |
+          BRANCH_NAME="${{ steps.extract.outputs.branch }}"
+          ISSUE_TITLE=$(echo "$BRANCH_NAME" | sed -E 's:.*/issue-[0-9]+-(.*):\1:' | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g')
+          echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
+
+      - name: Create issue
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title = "${{ steps.parse.outputs.issue_title }}";
+            const branch = "${{ steps.extract.outputs.branch }}";
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            const found = existing.data.find(issue => issue.title === title);
+            if (!found) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: `Auto-created for branch \`${branch}\`. Link this issue to a pull request once opened.`,
+                labels: ['auto-created']
+              });
+              console.log(`Created issue: ${title}`);
+            } else {
+              console.log(`Issue already exists: ${title}`);
+            }
