@@ -25,7 +25,7 @@ jobs:
       - name: Create issue
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const title = "${{ steps.parse.outputs.issue_title }}";
             const branch = "${{ steps.extract.outputs.branch }}";
