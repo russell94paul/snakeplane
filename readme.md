@@ -1,345 +1,539 @@
-🐍 SnakePlane
-SnakePlane is a Python-native distributed execution layer that turns ordinary Python scripts into scalable workloads without requiring developers to rewrite their code.
+# 🐍 SnakePlane
 
-It analyzes Python code, detects expensive data and compute patterns, builds an execution DAG, and routes work through scalable backends such as Ray, Docker, Kubernetes, and future dataframe/runtime engines.
+> **A Python-native distributed execution layer that turns ordinary scripts into scalable workloads — no rewrites required.**
 
-Mission: Make distributed execution feel native to Python users — no rewrites, no setup hell, no infrastructure ceremony.
+[![Status](https://img.shields.io/badge/status-pre--alpha-orange)]() [![Phase](https://img.shields.io/badge/phase-1%20MVP-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)]() [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]() [![Backend](https://img.shields.io/badge/backend-Ray-9cf)]()
 
-Planning Links
-Roadmap / Notion: https://www.notion.so/NEUROSPECT-221126fae7f480eab2baed5857405d93
-Linear: Not linked yet
-No Linear URL or Linear-style issue key was found in the exported Notion docs.
+SnakePlane analyzes Python code, detects expensive data and compute patterns, builds an execution DAG, and routes work through scalable backends such as **Ray**, **Docker**, **Kubernetes**, and future dataframe/runtime engines.
 
-If a Linear project or issue URL is added later, link it here:
+> **Mission:** Make distributed execution feel native to Python — no rewrites, no setup hell, no infrastructure ceremony.
 
-Linear: https://linear.app/<workspace>/project/<project-id>
-What SnakePlane Does
-SnakePlane lets developers run familiar Python, pandas, NumPy, and data-processing scripts through an intelligent execution plane.
+---
 
-Instead of forcing users to rewrite code for Spark, Dask, Ray, or Kubernetes, SnakePlane aims to:
+## 📑 Table of Contents
 
-Parse ordinary Python scripts.
-Detect dataframe-heavy and compute-heavy operations.
-Build a task graph automatically.
-Select an execution backend.
-Optimize memory and intermediate data movement.
-Run locally, in containers, or on cluster infrastructure.
-Provide clear logs, plans, profiling, and DAG visibility.
-Core Philosophy
-SnakePlane is not a traditional operating system. It is a lightweight runtime plane for Python workloads.
+1. [Why SnakePlane](#-why-snakeplane)
+2. [What It Does](#-what-it-does)
+3. [Core Philosophy](#-core-philosophy)
+4. [Quick Start](#-quick-start)
+5. [Architecture](#-architecture)
+6. [Repository Structure](#-repository-structure)
+7. [Roadmap](#-roadmap)
+8. [Release Milestones](#-release-milestones)
+9. [MVP Success Criteria](#-mvp-success-criteria)
+10. [Tech Stack](#-tech-stack)
+11. [Out of Scope (MVP)](#-out-of-scope-for-the-mvp)
+12. [Documentation & Planning](#-documentation--planning)
+13. [Contributing](#-contributing)
+14. [License](#-license)
 
-Where a normal OS schedules a Python process on one machine, SnakePlane sits above the Python runtime and decides how the work should be split, optimized, routed, compressed, and executed.
+---
 
-The long-term goal is a Python execution layer that behaves like an autopilot:
+## 💡 Why SnakePlane
 
-No code changes for the user.
-Automatic scaling across local cores, containers, or clusters.
-Transparent acceleration through Modin, Polars, Arrow, Ray, and future runtimes.
-Observable execution through plans, logs, profiling, metrics, and DAG views.
-Future live optimization based on runtime behavior.
-Quick Start
-1. Install dependencies
+| Traditional Approach | SnakePlane |
+|---|---|
+| Rewrite pandas → Spark / Dask APIs | Keep your pandas, NumPy, vanilla Python |
+| Manage cluster YAML, drivers, executors | Auto-route to local / Ray / Docker / K8s |
+| Choose a backend up front | Backend selected from detected workload |
+| Performance tuning is manual | Optimizer learns from run history (Phase 8+) |
+| Distributed compute = ceremony | Distributed compute = a CLI flag |
+
+---
+
+## 🚀 What It Does
+
+SnakePlane lets developers run familiar Python, pandas, NumPy, and data-processing scripts through an intelligent execution plane. Instead of forcing rewrites for Spark, Dask, Ray, or Kubernetes, it:
+
+- 🧠 **Parses** ordinary Python scripts via AST
+- 🔎 **Detects** dataframe-heavy and compute-heavy operations
+- 🕸️ **Builds** a task graph automatically
+- 🎯 **Selects** an execution backend
+- 💾 **Optimizes** memory and intermediate data movement
+- 🖥️ **Runs** locally, in containers, or on cluster infrastructure
+- 📊 **Surfaces** clear logs, plans, profiling, and DAG visibility
+
+---
+
+## 🧭 Core Philosophy
+
+SnakePlane is **not** a traditional operating system. It is a lightweight runtime plane for Python workloads.
+
+Where a normal OS schedules a Python process on one machine, SnakePlane sits *above* the Python runtime and decides how the work should be split, optimized, routed, compressed, and executed.
+
+The long-term goal is a Python execution layer that behaves like an **autopilot**:
+
+- ✅ No code changes for the user
+- ✅ Automatic scaling across local cores, containers, or clusters
+- ✅ Transparent acceleration through Modin, Polars, Arrow, Ray, and future runtimes
+- ✅ Observable execution through plans, logs, profiling, metrics, and DAG views
+- ✅ Future live optimization based on runtime behavior
+
+---
+
+## ⚡ Quick Start
+
+### 1. Install dependencies
+
+```bash
 pip install -r requirements.txt
-2. Run a sample script
+```
+
+### 2. Run a sample script
+
+```bash
 python -m cli.main examples/simple_etl.py --dry-run
-or, once packaged as a CLI:
+```
 
+…or once packaged as a CLI:
+
+```bash
 snakeplane run examples/simple_etl.py --dry-run
-3. Expected execution flow
-Python script
-  → AST parser
-  → workload detector
-  → task graph builder
-  → scheduler backend
-  → execution/logging output
-MVP Architecture
-The MVP is focused on proving the end-to-end execution path:
+```
 
-User runs CLI
-  → Script parsed with AST
-  → Workload components identified
-  → TaskGraph built
-  → Tasks scheduled through Ray or dry-run backend
-  → Compression simulated for intermediate frames
-  → DAG/log output generated
-Main Components
-Component	Purpose
-CLI Layer	Runs scripts, accepts flags, and prints execution output.
-Engine Layer	Parses Python AST and detects expensive operations.
-Task Graph	Represents detected work as DAG nodes and edges.
-Scheduler Layer	Dispatches or simulates tasks through selected backend.
-Smart Data Layer	Routes dataframe work through pandas-compatible acceleration paths.
-Compression Layer	Handles Arrow/LZ4/BLOSC-style intermediate frame storage.
-Observability Layer	Emits logs, execution plans, profiling data, and future DAG views.
-Repository Structure
+### 3. Expected execution flow
+
+```mermaid
+flowchart LR
+    A[Python script] --> B[AST parser]
+    B --> C[Workload detector]
+    C --> D[Task graph builder]
+    D --> E[Scheduler backend]
+    E --> F[Execution / logging output]
+```
+
+### 4. Sample output
+
+```text
+Detected DataFrame load at line 5
+Detected apply() inside for loop at line 14
+
+Planned DAG:
+    LoadCSV → Clean → Apply → GroupBy → Export
+
+Backend:  Ray
+Dry Run:  Enabled
+```
+
+---
+
+## 🏗️ Architecture
+
+### High-level layered view
+
+```mermaid
+flowchart TB
+    subgraph User["👤 User Surface"]
+        CLI["CLI Layer<br/>(Click, YAML, rich)"]
+    end
+
+    subgraph Plane["🐍 SnakePlane Runtime"]
+        ENG["Engine Layer<br/>AST · workload detection"]
+        TG["Task Graph<br/>DAG nodes & edges"]
+        SCH["Scheduler Layer<br/>backend dispatch"]
+        DATA["Smart Data Layer<br/>pandas · Modin · Polars"]
+        COMP["Compression Layer<br/>Arrow · LZ4 · BLOSC · Zstd"]
+        OBS["Observability<br/>logs · profiling · DAG"]
+    end
+
+    subgraph Backends["⚙️ Execution Backends"]
+        LOCAL["Local multicore"]
+        RAY["Ray cluster"]
+        DOCK["Docker"]
+        K8S["Kubernetes / Cloud"]
+    end
+
+    CLI --> ENG --> TG --> SCH
+    SCH --> DATA
+    SCH --> COMP
+    SCH --> OBS
+    SCH --> LOCAL
+    SCH --> RAY
+    SCH --> DOCK
+    SCH --> K8S
+```
+
+### MVP execution path
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant CLI as CLI
+    participant AST as AST Parser
+    participant DET as Workload Detector
+    participant TG as TaskGraph
+    participant SCH as Scheduler
+    participant BE as Ray / Dry-run
+
+    U->>CLI: snakeplane run script.py --dry-run
+    CLI->>AST: parse(script)
+    AST->>DET: walk nodes
+    DET->>TG: emit tasks + metadata
+    TG->>SCH: serialize DAG
+    SCH->>BE: dispatch (or simulate)
+    BE-->>SCH: results / logs
+    SCH-->>CLI: snakeplane-plan.json + DAG
+    CLI-->>U: 📊 plan, logs, profiling
+```
+
+### Component responsibilities
+
+| Component | Responsibility |
+|---|---|
+| **CLI Layer** | Runs scripts, accepts flags, prints execution output |
+| **Engine Layer** | Parses Python AST and detects expensive operations |
+| **Task Graph** | Represents detected work as DAG nodes and edges |
+| **Scheduler Layer** | Dispatches or simulates tasks through the selected backend |
+| **Smart Data Layer** | Routes dataframe work through pandas-compatible acceleration paths |
+| **Compression Layer** | Handles Arrow / LZ4 / BLOSC-style intermediate frame storage |
+| **Observability Layer** | Emits logs, execution plans, profiling data, future DAG views |
+
+---
+
+## 📁 Repository Structure
+
+```text
 snakeplane/
 ├── cli/             # CLI entrypoints and command handling
 ├── core/            # Backends, scheduler interface, runtime orchestration
-├── engine/          # AST parsing, workload detection, and DAG creation
+├── engine/          # AST parsing, workload detection, DAG creation
 ├── compression/     # In-memory compression and frame IO
-├── data/            # Future smart dataframe/data layer
-├── infra/           # Future Docker/Kubernetes/cloud runtime adapters
+├── data/            # Future smart dataframe / data layer
+├── infra/           # Future Docker / Kubernetes / cloud runtime adapters
 ├── examples/        # Sample scripts
 ├── docs/            # Architecture and roadmap documentation
 ├── tests/           # Unit and integration tests
 └── snakeplane-plan.json
-Roadmap Phases
-Phase 0 — Foundation & Project Setup
-Goal: Establish the repository, architecture, tooling, and MVP scope.
+```
 
-Included work:
+---
 
-Initialize GitHub repository.
-Create initial folder structure.
-Define MVP architecture.
-Decide MVP scheduler direction.
-Decide compression format direction.
-Create documentation skeleton.
-Freeze MVP scope.
-Add GitHub issue automation.
-Current status: Mostly complete.
+## 🗺️ Roadmap
 
-Completed foundation items include repo setup, scheduler/compression decisions, MVP scope documentation, system architecture, project docs skeleton, config schema, config loader, and GitHub issue automation.
+### Phase summary
 
-Phase 1 — MVP Execution Engine
-Goal: Allow a user to run a normal Python script and generate a scalable execution plan.
+| Phase | Focus | Deliverable | Status |
+|---|---|---|---|
+| **0** | Foundation & project setup | Repo, scope, tooling, automation | ✅ Mostly complete |
+| **1** | MVP execution engine | Dry-run plan from a real script | 🟡 In progress |
+| **2** | Ray runtime & scheduler backend | Real distributed task execution | ⬜ Not started |
+| **3** | Smart DataFrame engine | Transparent pandas/Modin/Polars routing | ⬜ Not started |
+| **4** | Compression & intermediate storage | Arrow + BLOSC/LZ4/Zstd toggles | ⬜ Not started |
+| **5** | Docker runtime & local orchestration | Identical local + container UX | ⬜ Not started |
+| **6** | Kubernetes & cloud scaling | Cluster-backed execution profiles | ⬜ Not started |
+| **7** | Observability, debugging & DAG viz | Profiling + DAG inspection tools | ⬜ Not started |
+| **8** | Auto-optimizer | Backend & partitioning recommendations | ⬜ Not started |
+| **9** | Live optimization layer | Adaptive routing during execution | ⬜ Not started |
+| **10** | Public release & ecosystem | Stable v1.0 + docs + benchmarks | ⬜ Not started |
 
-Included work:
+### Roadmap visualization
 
-Define MVP configuration schema.
-Implement config loader.
-Build CLI entrypoint.
-Write script runner.
-Parse Python scripts with AST.
-Walk AST nodes and detect relevant structure.
-Detect dispatchable patterns such as loops, apply, groupby, dataframe loads, and file IO.
-Label AST nodes with metadata such as line number, operation type, and estimated workload size.
-Build TaskNode and TaskGraph classes.
-Log simulated dispatch flow.
-Generate snakeplane-plan.json.
-Add text-mode DAG visualization.
-Create examples/simple_etl.py.
-Add parser and compression tests.
-Document MVP architecture and CLI usage.
-Validate an end-to-end dry run.
-Expected outcome:
+```mermaid
+gantt
+    title SnakePlane Roadmap
+    dateFormat  YYYY-MM-DD
+    axisFormat  Phase %d
+    section Foundation
+    Phase 0  Foundation               :done,    p0, 2026-01-01, 30d
+    section MVP
+    Phase 1  MVP Execution Engine     :active,  p1, after p0, 45d
+    Phase 2  Ray Runtime              :         p2, after p1, 30d
+    section Acceleration
+    Phase 3  Smart DataFrame Engine   :         p3, after p2, 30d
+    Phase 4  Compression Layer        :         p4, after p3, 21d
+    section Distribution
+    Phase 5  Docker Runtime           :         p5, after p4, 21d
+    Phase 6  Kubernetes & Cloud       :         p6, after p5, 30d
+    section Intelligence
+    Phase 7  Observability            :         p7, after p6, 21d
+    Phase 8  Auto-Optimizer           :         p8, after p7, 30d
+    Phase 9  Live Optimization        :         p9, after p8, 45d
+    section Release
+    Phase 10 Public Release           :         p10, after p9, 30d
+```
 
-A developer can run:
+---
 
+### Phase 0 — Foundation & Project Setup ✅
+
+> **Goal:** Establish the repository, architecture, tooling, and MVP scope.
+
+| Workstream | Status |
+|---|---|
+| Initialize GitHub repository | ✅ |
+| Initial folder structure | ✅ |
+| Define MVP architecture | ✅ |
+| Decide MVP scheduler direction | ✅ |
+| Decide compression format direction | ✅ |
+| Documentation skeleton | ✅ |
+| Freeze MVP scope | ✅ |
+| GitHub issue automation | ✅ |
+
+---
+
+### Phase 1 — MVP Execution Engine 🟡
+
+> **Goal:** Allow a user to run a normal Python script and generate a scalable execution plan.
+
+**Expected outcome**
+
+```bash
 python -m cli.main examples/simple_etl.py --dry-run
-and see a planned execution graph without changing the original script.
+```
 
-Current task status from Notion export:
+A developer sees a planned execution graph **without changing the original script**.
 
-Status	Items
-Done	Repo initialization, config schema, config loader, architecture docs, MVP scope, tooling decisions, GitHub issue automation
-In progress	CLI entrypoint
-Not started	Runner, AST walker, dispatch pattern detection, task graph, scheduler interface, Ray mock backend, compression wrapper, JSON DAG output, visualizer, example script, tests, docs
-Phase 2 — Ray Runtime & Scheduler Backend
-Goal: Move from dry-run planning to real distributed task execution.
+**Task status (from Notion export)**
 
-Included work:
+| Status | Items |
+|---|---|
+| ✅ **Done** | Repo init, config schema, config loader, architecture docs, MVP scope, tooling decisions, GitHub issue automation |
+| 🟡 **In progress** | CLI entrypoint |
+| ⬜ **Not started** | Runner, AST walker, dispatch pattern detection, task graph, scheduler interface, Ray mock backend, compression wrapper, JSON DAG output, visualizer, example script, tests, docs |
 
-Design the SchedulerBackend interface.
-Implement Ray backend support.
-Add backend selector in config and CLI.
-Map task graph nodes to scheduler tasks.
-Support local multicore execution.
-Improve task-level logs.
-Add failure handling and backend fallback behavior.
-Expected outcome:
+**Detected pattern targets**
 
-SnakePlane can run simple Python/dataframe workloads through Ray while preserving the same user-facing script flow.
+- Loops over rows / records
+- `.apply()`, `.groupby()`, `.agg()`
+- DataFrame loads (`read_csv`, `read_parquet`)
+- File IO with measurable size
+- AST nodes labeled with line number, op type, estimated workload size
 
-Notes:
+---
 
-The scheduler evaluation compared Ray, Dask, and Fugue. Ray is the practical MVP choice because it integrates tightly with Python-native scheduling and Modin, while Fugue remains a possible future abstraction for higher-level workflows.
+### Phase 2 — Ray Runtime & Scheduler Backend ⬜
 
-Phase 3 — Smart DataFrame Engine
-Goal: Add transparent dataframe acceleration.
+> **Goal:** Move from dry-run planning to real distributed task execution.
 
-Included work:
+**Workstream**
 
-Add pandas-compatible dataframe routing.
-Evaluate Modin with Ray backend.
-Evaluate Polars for high-performance dataframe operations.
-Support CSV and Parquet inputs.
-Add Arrow-backed memory layout where useful.
-Route selected pandas-style operations to faster distributed dataframe engines.
-Benchmark pandas vs Modin vs Polars paths.
-Expected outcome:
+- Design the `SchedulerBackend` interface
+- Implement Ray backend support
+- Add backend selector in config and CLI
+- Map task graph nodes to scheduler tasks
+- Support local multicore execution
+- Improve task-level logs
+- Add failure handling and backend fallback
 
-SnakePlane can accelerate dataframe-heavy scripts without requiring users to manually rewrite pandas code.
+**Why Ray for the MVP**
 
-Phase 4 — Compression & Intermediate Storage
-Goal: Improve memory efficiency and data movement between tasks.
+| Candidate | Outcome |
+|---|---|
+| **Ray** ⭐ | Tight Python integration, works with Modin, low setup overhead — chosen for MVP |
+| Dask | Strong dataframe story, but more ecosystem overhead for an early MVP |
+| Fugue | Higher-level abstraction; revisit later as a wrapper, not a base |
 
-Included work:
+---
 
-Enable compression format toggle.
-Implement store_frame() and load_frame() helpers.
-Support Arrow + LZ4/BLOSC-style frame storage.
-Evaluate Zstd for high-ratio batch jobs.
-Simulate local disk, tmpfs, or future object-storage-backed intermediate storage.
-Log compression/decompression timing.
-Expected outcome:
+### Phase 3 — Smart DataFrame Engine ⬜
 
-Intermediate dataframe outputs can be stored, compressed, reloaded, and measured as part of the execution flow.
+> **Goal:** Add transparent dataframe acceleration.
 
-Default strategy:
+- Pandas-compatible dataframe routing
+- Evaluate **Modin** (Ray backend) and **Polars**
+- CSV + Parquet inputs
+- Arrow-backed memory layout where useful
+- Benchmark pandas vs Modin vs Polars paths
 
-Default: Apache Arrow + BLOSC + LZ4
-High-ratio option: Apache Arrow + BLOSC + Zstd
-Fallback: no compression or raw LZ4 for special cases
-Phase 5 — Docker Runtime & Local Orchestration
-Goal: Make SnakePlane portable across local and containerized environments.
+---
 
-Included work:
+### Phase 4 — Compression & Intermediate Storage ⬜
 
-Add Docker runtime adapter.
-Package runtime dependencies into a Docker image.
-Support local vs Docker execution modes.
-Add CLI/config flags for execution mode.
-Prepare container structure for future Kubernetes support.
-Improve environment consistency across developer machines.
-Expected outcome:
+> **Goal:** Improve memory efficiency and data movement between tasks.
 
-Users can run the same SnakePlane workflow locally or inside Docker with minimal setup differences.
+- Compression format toggle
+- `store_frame()` / `load_frame()` helpers
+- Arrow + LZ4 / BLOSC storage
+- Zstd evaluation for high-ratio batch jobs
+- Local disk / tmpfs / future object-storage backends
+- Compression/decompression timing logs
 
-Phase 6 — Kubernetes & Cloud Scaling
-Goal: Expand SnakePlane from local/container execution to cluster-backed execution.
+**Default strategy**
 
-Included work:
+| Mode | Stack |
+|---|---|
+| **Default** | Apache Arrow + BLOSC + LZ4 |
+| **High-ratio** | Apache Arrow + BLOSC + Zstd |
+| **Fallback** | No compression, or raw LZ4 for special cases |
 
-Add Kubernetes-native execution support.
-Explore Ray-on-Kubernetes deployment patterns.
-Add autoscaling configuration.
-Add cloud runner hooks such as ECS or similar container orchestration targets.
-Define local, Docker, cluster, and cloud execution profiles.
-Improve remote intermediate storage strategy.
-Expected outcome:
+---
 
-SnakePlane can move from laptop execution to infrastructure-backed execution without changing user scripts.
+### Phase 5 — Docker Runtime & Local Orchestration ⬜
 
-Phase 7 — Observability, Debugging & DAG Visualization
-Goal: Make SnakePlane easier to inspect, trust, and debug.
+> **Goal:** Make SnakePlane portable across local and containerized environments.
 
-Included work:
+- Docker runtime adapter
+- Packaged runtime image
+- Local vs Docker execution modes
+- CLI/config flags for execution mode
+- Container structure prepared for K8s
+- Consistent dev environments
 
-Add richer CLI logging.
-Add local profiling with CPU and memory visibility.
-Add task-level timing.
-Add DAG JSON output.
-Add text-mode DAG visualizer.
-Explore lightweight web or notebook DAG visualization.
-Add monitoring/debug panel for MVP workflows.
-Expected outcome:
+---
 
-Developers can understand what SnakePlane detected, why it scheduled work a certain way, and where bottlenecks appear.
+### Phase 6 — Kubernetes & Cloud Scaling ⬜
 
-Phase 8 — Auto-Optimizer
-Goal: Turn SnakePlane into a performance-aware runtime that can improve execution choices.
+> **Goal:** Expand from local/container execution to cluster-backed execution.
 
-Included work:
+- Kubernetes-native execution
+- Ray-on-Kubernetes patterns
+- Autoscaling configuration
+- Cloud runner hooks (e.g., ECS)
+- Local / Docker / cluster / cloud execution profiles
+- Remote intermediate storage strategy
 
-Collect runtime traces.
-Detect CPU-bound, IO-bound, and memory-bound operations.
-Recommend backend choices.
-Recommend partitioning strategies.
-Add config-driven optimization controls.
-Explore speculative execution and adaptive batching.
-Prepare for live optimization and feedback loops.
-Expected outcome:
+---
 
-SnakePlane can make smarter scheduling and optimization decisions based on workload shape and observed runtime behavior.
+### Phase 7 — Observability, Debugging & DAG Visualization ⬜
 
-Phase 9 — Live Optimization Layer
-Goal: Add dynamic runtime intelligence that can adapt execution while code runs.
+> **Goal:** Make SnakePlane easier to inspect, trust, and debug.
 
-Included work:
+- Richer CLI logging
+- Local CPU/memory profiling
+- Task-level timing
+- DAG JSON output + text-mode visualizer
+- Lightweight web/notebook DAG view
+- Monitoring/debug panel for MVP workflows
 
-Monitor Python execution in real time.
-Detect bottlenecks and scaling opportunities.
-Route operations to better backends dynamically.
-Switch between pandas, Modin, Polars, Arrow, and compiled paths where appropriate.
-Track workload history across runs.
-Use feedback to improve future execution plans.
-Expected outcome:
+---
 
-SnakePlane behaves like an autopilot for Python performance: observing, rerouting, optimizing, and learning without requiring user changes.
+### Phase 8 — Auto-Optimizer ⬜
 
-Phase 10 — Public Release & Ecosystem
-Goal: Package SnakePlane into a stable, documented, public developer tool.
+> **Goal:** Turn SnakePlane into a performance-aware runtime.
 
-Included work:
+- Runtime trace collection
+- CPU / IO / memory bottleneck classification
+- Backend recommendations
+- Partitioning recommendations
+- Config-driven optimization controls
+- Speculative execution & adaptive batching prep
+- Live optimization & feedback loop prep
 
-Package for installation.
-Expand user guide and developer docs.
-Add benchmark results.
-Add examples and tutorials.
-Add contributing guide.
-Finalize release roadmap.
-Prepare public launch materials.
-Add cloud hooks where stable.
-Expected outcome:
+---
 
-SnakePlane reaches a stable public release with docs, examples, benchmarks, and a clear contribution path.
+### Phase 9 — Live Optimization Layer ⬜
 
-Release Milestones
-Version	Focus
-v0.1	Local script scaling
-v0.2	Docker + CLI integration
-v0.3	Kubernetes support
-v0.5	Auto-optimizer with config file
-v1.0	Stable public release with docs and cloud hook
-MVP Success Criteria
-The MVP is successful when:
+> **Goal:** Add dynamic runtime intelligence that adapts execution while code runs.
 
-A user can install SnakePlane and run a normal Python script.
-The script can be analyzed without user code changes.
-Dataframe and compute-heavy operations are detected.
-A DAG can be generated and printed.
-A scheduler backend can simulate or execute the plan.
-Intermediate frame compression can be toggled.
-CSV and Parquet inputs are supported.
-Basic logs, profiling, and debug output are available.
-The workflow is documented with examples.
-MVP Tech Stack
-Area	Tech
-Distributed Compute	Ray, with multiprocessing fallback
-DataFrames	Modin, optional Polars path, pandas-compatible routing
-Format & Compression	Apache Arrow, LZ4, BLOSC, optional Zstd
-Task Scheduling	Ray or custom micro-scheduler
-Containerization	Docker, Kubernetes-ready build
-CLI & Config	Click, YAML, psutil, rich
-Logging	loguru, rich console, future web logs
-Not in the MVP
-These are roadmap items, not initial MVP requirements:
+```mermaid
+flowchart LR
+    RUN[Running script] --> MON[Live monitor]
+    MON --> DET[Bottleneck detector]
+    DET --> ROUTE[Backend re-router]
+    ROUTE -->|switch| PD[pandas]
+    ROUTE -->|switch| MD[Modin]
+    ROUTE -->|switch| PL[Polars]
+    ROUTE -->|switch| AR[Arrow / compiled]
+    MON --> HIST[Workload history]
+    HIST --> PLAN[Smarter future plans]
+```
 
-Full Kubernetes deployment manager.
-Real-time Kubernetes autoscaling.
-PyPy, Numba, or JIT-level optimization.
-User-facing extensibility SDK.
-Workflow DAG orchestration UI.
-Notebook or GUI interface.
-Multi-user support or authentication.
-SQL or streaming source support.
-Example Output
-Detected DataFrame load at line 5
-Detected apply() inside for loop at line 14
-Planned DAG:
-    LoadCSV → Clean → Apply → GroupBy → Export
-Backend: Ray
-Dry Run: Enabled
-Documentation
-MVP Architecture
-Notion export includes user docs, project docs, benchmark planning, release strategy, setup notes, and technology evaluations.
-Contributing
+---
+
+### Phase 10 — Public Release & Ecosystem ⬜
+
+> **Goal:** Package SnakePlane into a stable, documented, public developer tool.
+
+- Installable package
+- Expanded user + dev docs
+- Benchmark results
+- Examples and tutorials
+- Contributing guide
+- Release roadmap finalization
+- Public launch materials
+- Stable cloud hooks
+
+---
+
+## 🏷️ Release Milestones
+
+| Version | Focus | Highlights |
+|---|---|---|
+| **v0.1** | Local script scaling | AST → DAG → Ray dry run |
+| **v0.2** | Docker + CLI integration | Containerized execution |
+| **v0.3** | Kubernetes support | Cluster-backed runs |
+| **v0.5** | Auto-optimizer | Config-driven tuning |
+| **v1.0** | Stable public release | Docs, benchmarks, cloud hooks |
+
+---
+
+## 🎯 MVP Success Criteria
+
+The MVP is successful when **all** of the following are true:
+
+- [ ] A user can install SnakePlane and run a normal Python script
+- [ ] The script can be analyzed without user code changes
+- [ ] Dataframe and compute-heavy operations are detected
+- [ ] A DAG can be generated and printed
+- [ ] A scheduler backend can simulate or execute the plan
+- [ ] Intermediate frame compression can be toggled
+- [ ] CSV and Parquet inputs are supported
+- [ ] Basic logs, profiling, and debug output are available
+- [ ] The workflow is documented with examples
+
+---
+
+## 🧰 Tech Stack
+
+| Area | Tech |
+|---|---|
+| **Distributed Compute** | Ray (multiprocessing fallback) |
+| **DataFrames** | Modin, optional Polars, pandas-compatible routing |
+| **Format & Compression** | Apache Arrow, LZ4, BLOSC, optional Zstd |
+| **Task Scheduling** | Ray or custom micro-scheduler |
+| **Containerization** | Docker, Kubernetes-ready build |
+| **CLI & Config** | Click, YAML, psutil, rich |
+| **Logging** | loguru, rich console, future web logs |
+
+---
+
+## 🚫 Out of Scope for the MVP
+
+These are roadmap items, **not** initial MVP requirements:
+
+- Full Kubernetes deployment manager
+- Real-time Kubernetes autoscaling
+- PyPy / Numba / JIT-level optimization
+- User-facing extensibility SDK
+- Workflow DAG orchestration UI
+- Notebook or GUI interface
+- Multi-user support or authentication
+- SQL or streaming source support
+
+---
+
+## 📚 Documentation & Planning
+
+| Resource | Link |
+|---|---|
+| 📓 Roadmap / Notion | [NEUROSPECT workspace](https://www.notion.so/NEUROSPECT-221126fae7f480eab2baed5857405d93) |
+| 📐 MVP Architecture | `docs/architecture.md` |
+| 🧪 Notion Export | User docs, project docs, benchmarks, release strategy, setup notes, tech evaluations |
+| 📋 Linear | *Not linked yet — no Linear URL or issue key was found in the exported Notion docs* |
+
+> If a Linear project or issue URL is added later, link it here:
+> `Linear: https://linear.app/<workspace>/project/<project-id>`
+
+---
+
+## 🤝 Contributing
+
 Contributions are welcome.
 
-Branch Naming Convention
-feature/yourname/issue-123-short-description
-bugfix/yourname/issue-123-short-description
-hotfix/yourname/issue-123-short-description
-License
-MIT License
+### Branch naming convention
+
+| Type | Pattern |
+|---|---|
+| Feature | `feature/yourname/issue-123-short-description` |
+| Bugfix | `bugfix/yourname/issue-123-short-description` |
+| Hotfix | `hotfix/yourname/issue-123-short-description` |
+
+---
+
+## 📜 License
+
+MIT License — see [`LICENSE`](LICENSE).
+
+---
+
+<sub>🐍 SnakePlane · Distributed execution that feels native to Python.</sub>
